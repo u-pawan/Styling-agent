@@ -1,0 +1,20 @@
+{
+  "name": "styling-agent",
+  "private": true,
+  "version": "0.1.0",
+  "description": "AI styling agent for D2C fashion brands: complete-the-look on site + WhatsApp styling messages",
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "migrate": "npm run migrate -w server",
+    "import": "npm run import -w server --",
+    "enrich": "npm run enrich -w server --",
+    "dev:server": "npm run dev -w server",
+    "dev:web": "npm run dev -w web",
+    "dev": "npm run dev:server & npm run dev:web"
+  }
+}

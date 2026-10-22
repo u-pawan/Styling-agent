@@ -1,0 +1,23 @@
+{
+  "name": "server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch --env-file-if-exists=../.env src/index.js",
+    "start": "node --env-file-if-exists=../.env src/index.js",
+    "migrate": "node --env-file-if-exists=../.env scripts/migrate.js",
+    "import": "node --env-file-if-exists=../.env scripts/import.js",
+    "enrich": "node --env-file-if-exists=../.env scripts/enrich.js",
+    "test": "node --test",
+    "copy-products": "node --env-file-if-exists=../.env scripts/copy-products.js",
+    "prewarm": "node --env-file-if-exists=../.env scripts/prewarm.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "pg": "^8.16.0",
+    "pgvector": "^0.2.1",
+    "sharp": "^0.34.2"
+  }
+}

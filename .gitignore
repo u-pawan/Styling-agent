@@ -1,0 +1,16 @@
+# dependencies and builds
+node_modules/
+dist/
+
+# secrets: database password, API keys
+.env
+.env.*
+!.env.example
+
+# generated at runtime
+server/public/collages/
+
+# local tooling and OS files
+.claude/
+.DS_Store
+*.log

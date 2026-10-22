@@ -1,0 +1,16 @@
+# Local Postgres with pgvector — same SQL as Neon, so switching is just DATABASE_URL.
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: styling-agent-db
+    environment:
+      POSTGRES_USER: styling
+      POSTGRES_PASSWORD: styling
+      POSTGRES_DB: styling
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
