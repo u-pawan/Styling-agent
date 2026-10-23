@@ -18,31 +18,69 @@ Runs on your own machine with open-source models: **Postgres + pgvector** (Docke
 
 ## Requirements
 
-- macOS or Linux with 16 GB RAM (an Apple-silicon Mac works well)
-- Node.js 22+
-- Docker Desktop (only for the local database)
-- Ollama (`brew install ollama`)
-- Optional: a [Neon](https://neon.tech) Postgres project; `cloudflared` for share links
+Works on **macOS** and **Windows 10/11** (Linux works too, with the macOS commands).
+
+| | macOS | Windows |
+| --- | --- | --- |
+| Hardware | 16 GB RAM; Apple-silicon Macs run the models on the GPU | 16 GB RAM; an NVIDIA GPU makes AI tagging much faster (CPU-only works, just slower) |
+| Node.js 22.9+ | `brew install node` | `winget install OpenJS.NodeJS.LTS` |
+| Git | `xcode-select --install` | `winget install Git.Git` |
+| Docker Desktop (local database only) | [docker.com](https://www.docker.com/products/docker-desktop) | `winget install Docker.DockerDesktop` (needs WSL 2; restart after installing) |
+| Ollama | `brew install ollama` | `winget install Ollama.Ollama` |
+| cloudflared (optional, share links) | `brew install cloudflared` | `winget install --id Cloudflare.cloudflared` |
+
+You can skip Docker if you use a [Neon](https://neon.tech) database instead (see **Using Neon**).
+
+After installing on Windows, open a **new** terminal so the new commands are found. Use **PowerShell** or **Windows Terminal**; every `npm` command below is the same on both systems.
 
 ## Quick start
 
+**1. Get the code and install packages**
+
 ```bash
-git clone <this repo> && cd Styling-agent
-cp .env.example .env                      # defaults work for a local run
+git clone https://github.com/u-pawan/Styling-agent.git
+cd Styling-agent
 npm install
-
-ollama serve                              # keep running in its own terminal
-ollama pull qwen3-vl:4b-instruct          # ~3.3 GB
-ollama pull nomic-embed-text              # ~270 MB
-
-npm run db:up                             # local Postgres + pgvector on :5433
-npm run migrate                           # tables, vector extension, indexes
-npm run import                            # ~350-product sample of STORE_URL
-npm run enrich                            # AI tagging, ~3 s per product
-npm run dev                               # API on :4000, shop on :5173
 ```
 
-Open http://localhost:5173, pick a product, and scroll to **Complete the look**. Add a full look, check out with the WhatsApp box ticked, and reply in the phone preview.
+**2. Start Ollama and download the models**
+
+- **macOS:** run `ollama serve` in its own terminal and leave it open (or `brew services start ollama` to keep it running in the background).
+- **Windows:** Ollama starts by itself after install (llama icon in the system tray). If it isn't there, open **Ollama** from the Start menu.
+
+Then, on either system:
+
+```bash
+ollama pull qwen3-vl:4b-instruct     # ~3.3 GB
+ollama pull nomic-embed-text         # ~270 MB
+```
+
+**3. Check everything and create `.env`**
+
+```bash
+npm run setup
+```
+
+This checks Node, Docker, Ollama and the models, copies `.env.example` to `.env` if you don't have one, and tells you exactly what's missing.
+
+**4. Database, catalog and AI tagging**
+
+Start Docker Desktop first, then:
+
+```bash
+npm run db:up       # local Postgres + pgvector on port 5433
+npm run migrate     # tables, vector extension, indexes
+npm run import      # ~350-product sample of STORE_URL
+npm run enrich      # AI tagging: ~3 s per product on an M-series Mac, slower without a GPU
+```
+
+**5. Run it**
+
+```bash
+npm run dev         # API on :4000 and shop on :5173, in one terminal
+```
+
+Open http://localhost:5173, pick a product, and scroll to **Complete the look**. Add a full look, check out with the WhatsApp box ticked, and reply in the phone preview. Stop everything with `Ctrl+C`.
 
 ## Configuration
 
@@ -72,13 +110,18 @@ Neon is plain Postgres with pgvector, so the code doesn't change.
 
 To show the demo to someone without deploying:
 
+Install `cloudflared` first (see **Requirements**). Then, with `npm run dev` already running, open two more terminals:
+
 ```bash
+# terminal 2: production build of the shop on :4173
 npm run build -w web
-npm run preview -w web                    # production shop on :4173 (API must be running)
+npm run preview -w web
+
+# terminal 3: public link
 cloudflared tunnel --url http://localhost:4173
 ```
 
-Put the printed `https://<random>.trycloudflare.com` address into `PUBLIC_URL` and `SHOP_URL` in `.env`; the API restarts on its own. Run `npm run prewarm -w server` so the first products load instantly. The link only works while your machine and these commands are running, and it changes every time.
+Put the printed `https://<random>.trycloudflare.com` address into `PUBLIC_URL` and `SHOP_URL` in `.env`; the API restarts on its own. Run `npm run prewarm -w server` so the first products load instantly. The link works only while your computer is awake and these commands are running. If your computer sleeps, Cloudflare drops the tunnel and you need a new one with a new address.
 
 ## Going live on WhatsApp
 
@@ -95,6 +138,7 @@ Marketing messages are paid per message (check Meta's current rate card). Only s
 
 | Command | What it does |
 | --- | --- |
+| `npm run setup` | Check tools and models, create `.env` |
 | `npm run dev` | API (watch mode) and shop dev server together |
 | `npm run db:up` / `db:down` | Start or stop local Postgres |
 | `npm run migrate` | Create tables and indexes |
@@ -102,14 +146,25 @@ Marketing messages are paid per message (check Meta's current rate card). Only s
 | `npm run enrich -- [--vision] [--force]` | AI tagging + embeddings for untagged products |
 | `npm run copy-products -w server -- --from <url>` | Copy tagged products between databases |
 | `npm run prewarm -w server -- --category shirt --limit 12` | Cache looks so demos never wait |
-| `npm test -w server` | Rule tests |
+| `npm test` | Rule tests |
 
 ## Troubleshooting
 
+**Both systems**
+
 - **Every tagging call times out**: you're on `qwen3-vl:4b`, the "thinking" variant, which ignores `think: false` when a JSON schema is set. Use `qwen3-vl:4b-instruct`.
-- **"AI offline" in the shop header**: start `ollama serve`.
+- **"AI offline" in the shop header**: Ollama isn't running (macOS: `ollama serve`; Windows: open the Ollama app).
 - **The first request after a break is slow**: Neon pauses idle databases, and waking takes a second or two.
 - **Changed `EMBED_MODEL`**: set `EMBED_DIM` to match, then migrate a fresh database and re-run `enrich --force`.
+- **"Port already in use"**: something else is on 4000, 5173 or 5433. Stop it, or change `PORT` in `.env` / the port in `docker-compose.yml`.
+
+**Windows**
+
+- **`npm` or `ollama` is "not recognized"**: open a new terminal after installing, or sign out and back in.
+- **PowerShell says "running scripts is disabled"**: run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, or use **Command Prompt** instead.
+- **Docker says "WSL 2 installation is incomplete"**: run `wsl --install` in an admin PowerShell, restart, then open Docker Desktop.
+- **`npm run db:up` fails**: Docker Desktop must be open and show "Engine running" before you run it.
+- **AI tagging is very slow**: without an NVIDIA GPU, Ollama runs on the CPU. Tag a small sample with `npm run enrich -- --limit 50` first, or use `--concurrency 1`.
 
 ## Status
 

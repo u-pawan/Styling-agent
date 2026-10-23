@@ -2,8 +2,8 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 const proxy = {
-  '/api': 'http://localhost:4000',
-  '/collages': 'http://localhost:4000',
+  '/api': 'http://127.0.0.1:4000',
+  '/collages': 'http://127.0.0.1:4000',
 };
 
 // Cloudflare quick tunnels (*.trycloudflare.com) are allowed so the demo can be shared.

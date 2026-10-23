@@ -1,6 +1,6 @@
 # Server
 
-Node 22+ / Express 5 API, the catalog pipeline (import → AI tagging → embeddings), the outfit engine and the WhatsApp flow. Plain JavaScript (ES modules). It reads settings from the root `.env`.
+Node 22.9+ / Express 5 API (macOS, Windows and Linux), the catalog pipeline (import → AI tagging → embeddings), the outfit engine and the WhatsApp flow. Plain JavaScript (ES modules). It reads settings from the root `.env`.
 
 ## Run
 

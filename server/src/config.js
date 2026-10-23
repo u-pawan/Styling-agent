@@ -2,7 +2,7 @@ const env = process.env;
 
 export const config = {
   databaseUrl: env.DATABASE_URL ?? 'postgres://styling:styling@localhost:5433/styling',
-  ollamaUrl: env.OLLAMA_URL ?? 'http://localhost:11434',
+  ollamaUrl: env.OLLAMA_URL ?? 'http://127.0.0.1:11434',
   tagModel: env.TAG_MODEL ?? 'qwen3-vl:4b-instruct',
   chatModel: env.CHAT_MODEL ?? 'qwen3-vl:4b-instruct',
   embedModel: env.EMBED_MODEL ?? 'nomic-embed-text',
